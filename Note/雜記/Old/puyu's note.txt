@@ -1,0 +1,914 @@
+laravel中大型架構
+
+
+原MVC
+Model(資料庫) View(HTML) Controller(與HTTP溝通 調用model&controller)
+
+中大型專案架構
+Model : 僅做Eloquent class
+  |
+  V
+Repository : 輔助model,處理資料庫邏輯,然後給controller
+  |
+  V
+Service : 輔助controller,處理商業邏輯,然後注入controller
+  |
+  V
+Controller : 接收 HTTP request，調用其他 service
+
+
+Presenter : 處理顯示邏輯，然後注入到 view。
+  |
+  V
+View : 使用 blade 將資料 binding 到 HTML。
+//---------------------------------------------------------
+商業邏輯:
+    常見的有 1.牽扯到外部行為:如 發EMAIL , 使用外部API
+             2.使用PHP寫的邏輯:如 根據購買件數有不同折扣
+//---------------------------------------------------------
+SOLID :
+
+S : Single Responsibility Principle (單一職責原則)
+O : Open Closed Principle (開放封閉原則)
+L : Liskov Substitution Principle (里氏替換原則)，Least Knowledge Principle (
+    最小知識原則)
+I : Interface Segregation Principle (介面隔離原則)
+D : Dependency Inversion Principle (依賴反轉原則)
+
+//---------------------------------------------------------
+
+retrieving 檢索
+constructor funcs 建構子
+recursion  遞迴
+Big O notation
+
+//---------------------------------------------------------
+
+#php #laravel #migration
+
+php artisan make:migration create_mytable --create=mytable
+
+php artisan make:migration migration's_file_name --create=create_table_name
+
+檢查資料表或欄位是否存在
+
+您可以使用 hasTable 和 hasColumn 方法簡單的檢查資料表或欄位是否存在：
+
+if (Schema::hasTable('users')) {
+    //
+}
+
+if (Schema::hasColumn('users', 'email')) {
+    //
+}
+
+php artisan make:model file_name
+
+//----------------------
+#php #laravel #20161205
+
+laravel belongsToMany跨表查詢參考資料
+https://segmentfault.com/q/1010000007527386
+
+#jquery #ajax
+#debug
+
+161205 bug 程式碼片段
+
+function upload_click()
+{
+    var oData = getOdata();
+    var patient_id = $("#patient_id").val() ;
+    var resp_id = $("#resp_id").val() ;
+    var rt_id = $("#rt_id").val() ;
+    var error_txt = "請輸入" ;
+    var do_ajax_flag = 0 ;
+
+    //病歷號防呆
+    if ( patient_id !=null && patient_id != "" )
+    {
+        do_ajax_flag = 1 ;
+    }else{
+        do_ajax_flag = 0 ;
+        error_txt += " 病歷號" ;
+        console.log('Alert:', '病歷號未填');
+    }
+    //呼吸器編號防呆
+    if ( resp_id !=null && resp_id != "" )
+    {
+        do_ajax_flag = 1 ;
+    }else{
+        do_ajax_flag = 0 ;
+        error_txt += " 呼吸器編號" ;
+        console.log('Alert:', '呼吸器編號未填');
+    }
+    //卡號(RT號)防呆
+    if ( rt_id !=null && rt_id != "" )
+    {
+        do_ajax_flag = 1 ;
+    }else{
+        do_ajax_flag = 0 ;
+        error_txt += " 卡號" ;
+        console.log('Alert:', '卡號未填');
+    }
+
+    if ( do_ajax_flag == 1 )
+    {
+        $.ajax({
+            url: base_url+"api/putRespData",
+            data: oData,
+            async: true,
+            cache: true,
+            timeout: 3000,
+            type: "POST",
+            success: function (resp) {
+                console.log("upload_l",resp) ;
+                if (resp.messages == "Success" )
+                {
+                    $("#Run_Status").val("上傳成功") ;
+                }else if (resp.messages == "Accepted" ){
+                    $("#Run_Status").val("上傳成功，但尚未寫入HIS，將於網路連線後重傳") ;
+                }
+
+            },
+            timeout: function() {
+                console.log("發生錯誤: " + "timeout" + "10秒後重傳");
+                $("#Run_Status").val("發生錯誤: " + "timeout" + "10秒後重傳") ;
+                setTimeout(function(){upload_click()},10000);
+                var msg='是否要離開此頁面??';
+                window.onbeforeunload=function(){return msg;};
+
+            },
+            error: function(){
+                console.log("發生錯誤: " + "error" + "10秒後重傳");
+                $("#Run_Status").val("發生錯誤: " + "timeout" + "10秒後重傳") ;
+                setTimeout(function(){upload_click()},10000);
+                var msg='是否要離開此頁面??';
+                window.onbeforeunload=function(){return msg;};
+            }
+        });
+    }else{
+        alert(error_txt) ;
+        $("#Run_Status").val(error_txt) ;
+    }
+
+}
+
+//取得所有section main的值 回傳Json
+function getOdata()
+{
+  var i = 0 ;
+  var max = $("#section_main input").length ;
+  var jsonText = '{';
+  var Err_num = 0 ;
+  var Err_input = [] ;
+
+  var resp_id = $("#resp_id").val() ;
+  jsonText += '"resp_id":"'+resp_id+'"' ;
+
+  while (i<max)
+  {
+    var value =  $('input:eq('+i+')').val();
+    var id =  $('input:eq('+i+')').attr('id') ;
+    //紀錄空值欄位
+    if (value==''||value==null)
+    {
+      value = '' ;
+      Err_input[Err_num] = id ;
+      Err_num = Err_num + 1 ;
+    }
+    //寫入jsonText
+
+    jsonText+=',"'+id+'":"'+value+'"' ;
+
+    i=i+1 ;
+  }
+  jsonText+="}" ;
+  //LOG獲取到的資料
+  console.log("G_DATA",jsonText);
+
+  //LOG空值欄位
+  var Err_len = Err_input.length ;
+  if ( Err_len!= 0)
+  {
+    var Err_i = 0 ;
+    while ( Err_i < Err_len )
+    {
+      console.log("Valur_Null",Err_input[Err_i]) ;
+      Err_i = Err_i +1 ;
+    }
+  }
+
+  return jsonText ;
+}
+RESULT:ERROR 400
+
+原因出在ajax function 裡傳值的data選項，因為我們沒有指定選項dataType的值，所以預設是json(推測)
+，然後給予oData值的function getOdata裡return的jsonText是json格式的字串，
+在我們用JSON.parse轉完格式後就能正常運作
+
+//---------------------------------------------------------
+
+#laravel #start_up
+#161215
+#複製專案使用
+1.目標專案跟目錄下 執行
+  composer install
+2.php artisan key:generate
+3.php artisan migrate
+
+#words
+Dynamic 動態的
+Coordinate 協調
+metric 標準
+Summary 概括
+
+//---------------------------------------------------------
+
+#python #161219
+
+註解 是 # 而非 //
+
+//---------------------------------------------------------
+
+#python #161220
+
+type() 方法相同於PHP的var_dump()
+用於回傳變數型別
+
+{} dictionary
+[] list
+() tuple
+
+//---------------------------------------------------------
+
+#python #161221
+#selenium
+
+問題:
+web=webdriver.Chrome() 報錯
+Error message: “’chromedriver’ executable needs to be available in the path”
+解決:
+缺少驅動ChromeDriver.exe
+下載後丟到python35\Scripts\就OK了
+環境變數添加
+python35\
+python35\Scripts\
+
+環境變數要指向存放webdriver 的地方
+
+
+//---------------------------------------------------------
+
+#161222 #css
+
+style="overflow-y: auto"
+做出scroll bar 可以允許左右滑動
+
+#python #selenium
+
+webdriver.foward()
+webdriver.back()
+webdriver.close()
+webdriver.quit()
+webdriver.refresh()
+webdriver.maximize_window()
+webdriver.find_element_by_id('id').send_keys('content')
+webdriver.find_element_by_name('name').send_keys('content')
+webdriver.find_element_by_class_name('class_name').send_keys('content')
+webdriver.find_element_by_link_text('text_content').click()
+webdriver.find_element_by_partial_link_text('text_content').click()
+webdriver.find_element_by_xpath('xpath').click()
+webdriver.find_element_by_css_selector('css').click()
+
+#xpath
+//tagname[@attribute='value']
+<input id='pass' class='inputtext' name='pass' tabindex='2' type='password'/>
+tagname=input
+id=pass
+class=inputtext
+name=pass
+tabindex=2
+type=password
+
+//input[@name='pass']
+
+#css
+tagname[attribute='value']
+
+input[id='email']
+
+//---------------------------------------------------------
+
+#161223 #python #selenium
+print(web.find_element_by_id('resp_id').get_attribute('value'))
+
+webdriver.find_element_by_id('id').get_attribute('value')
+
+//---------------------------------------------------------
+
+#161226 #javascript #jquery
+
+http://mro-php.blogspot.tw/2009/10/php_19.html
+
+"^\d+$" //非負整數（正整數+ 0）
+"^[0-9]*[1-9][0-9]*$" //正整數
+"^((-\d+)|(0+))$" //非正整數（負整數+ 0）
+"^-[0-9]*[1-9][0-9]*$" //負整數
+"^-?\d+$" //整數
+"^\d+(\.\d+)?$" //非負浮點數（正浮點數+ 0）
+"^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\ .[0-9]+)|([0-9]*[1-9][0-9]*))$" //正浮點數
+"^((-\d+(\.\d+)?)|(0+(\.0+)?))$" //非正浮點數（負浮點數+ 0）
+"^(-(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9] *\.[0-9]+)|([0-9]*[1-9][0-9]*)))$" //負浮點數//OSPHP.COm.CN
+"^(-?\d+)(\.\d+)?$" //浮點數
+"^[A-Za-z]+$" //由26個英文字母組成的字符串
+"^[AZ]+$" //由26個英文字母的大寫組成的字符串
+"^[az]+$" //由26個英文字母的小寫組成的字符串
+"^[A-Za-z0-9]+$" //由數字和26個英文字母組成的字符串
+"^\w+$" //由數字、26個英文字母或者下劃線組成的字符串
+"^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$" //email地址
+"^[a-zA-z]+://(\w+(-\w+)*)(\.(\w+(-\w+)*))*(\?\S*)?$" // url
+/^(d{2}|d{4})-((0([1-9]{1}))|(1[1|2]))-(([0-2]([1- 9]{1}))|(3[0|1]))$/ //年-月-日
+/^((0([1-9]{1}))|(1[1|2]))/(([0-2]([1-9]{1}))|(3[0 |1]))/(d{2}|d{4})$/ //月/日/年
+"^([w-.]+)@(([[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.)|( ([w-]+.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(]?)$" //Emil //OSPHP.COm .CN
+/^((\+?[0-9]{2,4}\-[0-9]{3,4}\-)|([0-9]{3,4}\-))?( [0-9]{7,8})(\-[0-9]+)?$/ //電話號碼
+"^(d{1,2}|1dd|2[0-4]d|25[0-5]).(d{1,2}|1dd|2[0-4]d|25[0- 5]).(d{1,2}|1dd|2[0-4]d|25[0-5]).(d{1,2}|1dd|2[0-4]d|25[ 0-5])$" //IP地址
+
+用正則表達式判斷是否符合格式
+//日期時間格式 Y-m-d H:i:s
+function verify_datetime(str){
+    var reg = /^(\d{1,4})(-|\/)(\d{1,2})\2(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2})$/;
+    var r = str.match(reg);
+    if(r==null){
+     return false;
+    } else {
+     return true;
+    }
+}
+//日期格式 Y-m-d
+function verify_date(str){
+    var reg = /^(\d{1,4})(-|\/)(\d{1,2})\2(\d{1,2})$/;
+    var r = str.match(reg);
+    if(r==null){
+     return false;
+    } else {
+     return true;
+    }
+}
+//時間格式H:i:s
+function verify_time(str){
+    var reg = /^(\d{1,2})(:)?(\d{1,2})$/;
+    var r = str.match(reg);
+    if(r==null){
+     return false;
+    } else if (r[1]>24 || r[3]>60) {
+     return false;
+    } else{
+      return true;
+    }
+}
+
+function stuck_in_array()
+{
+    var check=[];
+    //將checked值塞成陣列
+    //把所有class是time_list的是checkbox且checked的物件的value放進array check
+    $(".time_list:checkbox:checked").each(function(){
+       check.push($(this).val());
+    });
+}
+
+javascript 取得現在時間
+var d = new Date();
+var month = d.getMonth()+1;
+var day = d.getDate();
+var today = d.getFullYear() + '-' + (month<10 ? '0' : '') + month + '-' + (day<10 ? '0' : '') day;
+
+new Date().getMonth() 取得當下月份 以0-11 輸出 所以要加一
+另還有...函式可使用
+new Date().getFullYear()
+new Date().getDate()
+new Date().getHours()
+new Date().getMinute()
+new Date().getSecond()
+
+Datetimepicker 使用
+以下程式碼帶入片段 需引用額外js css檔不附在其中
+
+首先 引入所需資源
+<head>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/jquery-ui.css">
+    <link rel="stylesheet" href="css/jquery-ui-timepicker-addon.css">
+    <script src="js/jquery-1.12.4.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/jquery-1.12.1-ui.js"></script>
+    <script src="js/jquery-ui-timepicker-addon.js"></script>
+    <script src="js/jquery-ui-sliderAccess.js"></script>
+    <link rel="stylesheet" href="css/mycss.css">
+    <style>
+        <!--將整個datetimepicker置於最上層-->
+        <!--並且字體縮小到10PX，使整個datetimepicker縮小-->
+        #ui-datepicker-div {
+           z-index: 9999 !important;
+           font-size: 10px;
+        }
+        <!--將datetimepicker 最下方now按鈕隱藏-->
+        #ui-datepicker-div button.ui-datepicker-current {display: none;}
+    </style>
+</head>
+再來在網頁準備完畢後，以jquery指定input物件 接入函式datetimepicker
+<script>
+$(document).ready(function() {
+    var d = new Date();
+    var month = d.getMonth()+1;
+    var day = d.getDate();
+
+    var today = d.getFullYear() + '-' + (month<10 ? '0' : '') + month + '-' + (day<10 ? '0' : '') + day;
+    $("#input_set_time").datetimepicker({
+        dateFormat: 'yy-mm-dd', //日期格式
+        //defultDate: 預設時間
+        showSecond: true, //顯示秒
+        changeYear: true, //年份改為下拉選單
+        changeMonth: true,//月份改為下拉選單
+        timeFormat: 'HH:mm:ss', //時間格式
+        //defultValue: 預設值
+        minDate: 0 , //最小範圍 0表示當下時間，不能往前選
+        //yearRange : "-60:+60", 可選年份範圍
+        //maxDate : '+0' 最大範圍
+    });
+});
+</script>
+
+//---------------------------------------------------------
+
+#161227 #python
+
+pip install XXXXX 是在CMD執行 非python
+***低級錯誤 別再犯***
+
+python -m pip install --upgrade pip CMD中升級pip
+
+# Install the latest version
+pip install robotframework
+
+# Upgrade to the latest version
+pip install --upgrade robotframework
+
+# Install a specific version
+pip install robotframework==2.9.2
+
+# Install separately downloaded package (no network connection needed)
+pip install robotframework-3.0.tar.gz
+
+# Uninstall
+pip uninstall robotframework
+
+#crawler
+於chrome按下F12後，如果網頁在network回傳，資料顯示在XMH中表示，資料是取得後透過javascripts呈現，反之若呈現在document中則代表網頁從伺服器取得資料
+
+//---------------------------------------------------------
+
+#161228
+
+#php
+php在串聯文字上是用"  .  "而非"  +  "
+用"  +  "易導致文中內容出錯
+低級錯誤，切記。
+
+#php #laravel
+softdelete
+前置
+新增一個 migration
+裡面要有 $table->softdelete() ;
+migrate他
+回到model  引用 use Illuminate\Database\Eloquent\SoftDelete
+protected $date = ['delete_at'] ;
+在route寫一個新的刪除路徑
+被刪除後的資料 不會從資料庫刪去 只是會在delete_at寫入刪除時間
+
+使用Route
+find或where剛剛那筆 資料
+return 出剛刪除的那筆資料 並不會顯示出來
+要model::onlyTrashed()-> 去return那筆資料才看的到
+
+要強制讓已被軟刪除的模型資料出現在查詢結果裡，在查詢時使用 withTrashed 方法
+如果你只想查詢被軟刪除的模型資料，可以使用 onlyTrashed 方法
+要把被軟刪除的模型資料恢復，使用 restore 方法
+
+要確認模型是否被軟刪除了，可以使用 trashed 方法：
+Route::get('/istrashed', function() {
+  $target = Post_model::withTrashed()->find(23) ;
+  if ($target->trashed())
+  {
+    return $target.'is trashed ' ;
+  }
+
+  return 'nope' . $target.'isn\'t trashed ' ;
+}) ;
+
+//---------------------------------------------------------
+
+#170101
+
+#php #laravel #blade
+
+@include 的運作方式就是把來源檔案的程式碼，一字不漏的加到我們指定的位置上
+主要的用法可以做為網頁的header和header這類每頁都有而且不會改變的東西上，日後維護的時候也只需要修改一份code即可
+
+@extend 繼承，是由一個頁面繼承某一個頁面的全部內容
+
+//---------------------------------------------------------
+
+#170104
+
+#javascript #jquery
+json object長度
+Object.keys(json_object).length;
+
+跳傳至url
+window.location="url" ;
+功能一樣只是不會跳回前一頁
+window.location.replace("url") ;
+
+//---------------------------------------------------------
+
+#170109
+
+#python
+'\n' 字串裡面的換行字元
+
+//---------------------------------------------------------
+
+#1701111
+
+#java #android
+
+寫在oncreate 螢幕長亮&全螢幕
+
+getWindow()函式取得window物件 setFlag()設定視窗屬性
+
+getWindow().setFlags( WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON , WindowManager. LayoutParams.FLAG_KEEP_SCREEN_ON );
+getWindow().setFlags( WindowManager.LayoutParams.FLAG_FULLSCREEN , WindowManager.LayoutParams.FLAG_FULLSCREEN );
+
+#concept
+ISP: Interface Segregation Principle
+ISP (Interface Segregation Principle) 介面分隔原則：用戶不應被迫相依於他們用不到的method。
+
+使用多個專門的介面比使用單一的總介面要好，否則會造成對介面的污染。
+一個類別對另一個類別的依賴性應當是建立在最小的介面上。
+
+//---------------------------------------------------------
+
+#170117
+
+#java #android
+
+file in drawable is only allowed lower-case
+
+xxxx.setOnClickListener() function like that has to write in onCreate
+it could not exist without depend on it .
+And findviewbyid can only used in onCreate too .
+
+//---------------------------------------------------------
+
+#170123
+
+#java
+
+java string compare
+
+****  Code  ****
+// These two have the same value
+new String("test").equals("test")
+// Returns true
+
+//... but they are not the same object
+new String ( "test") == "test"
+// Returns false
+
+//... Neither are these
+new String("test") == new String("test")
+// Returns false
+
+//... But these are because literals are interned by
+// the compiler and thus refer to the same object
+"test" == "test"
+// Returns true
+
+//... But you shouldnt really just call Objects.equals ()
+Objects.equals("test",new String("test"))
+// Returns true
+Objects.equals(null,"test")
+// Returns false
+*****************
+
+**** CASE INSENSITIVE ****
+System.out.println("STR".equalsIgnoreCase("str"));
+//Returns true
+**************************
+
+**** A STRING THAT IS CONTAINED IN ANOTHER ****
+System.out.println("STR ### ###"contains("STR").);
+// Returns true
+***********************************************
+
+**** Start With ****
+System.out.println("str1".startsWith("str"));
+//Returns true, because "str1" begins with "str"
+********************
+
+**** End With ****
+System.out.println("str1".endsWith("r1"));
+// Returns true because "str1" ends with "r1"
+******************
+
+#java #android
+
+imageView.setTag(int key) ;
+imageView.getTag() ;
+**use these two method to set tag to remember which picture i showed .**
+
+//---------------------------------------------------------
+
+#170130
+
+#python
+
+pyperclip this module help u with copy and paste text from the clipboard
+pyperclip.copy()
+pyperclip.paste()
+
+//---------------------------------------------------------
+
+#170131
+
+#python
+
+'''gigantic string'''
+
+string.isalpha() //letters only
+string.isalnum() //number and letters only
+string.isdecimal() //number only
+string.isspace() //white space only
+string.istitle() //titlecase only
+string.isupper() //upper letter only
+string.upper() //turn into uppercase
+string.startwith(string2) //if string startwith string2
+
+','.join(['cats','rats','dogs'])
+>>>'cats,rats,dogs'
+
+'my name is poyu'.split()
+>>>['my','name','is','poyu']
+
+>>>'Hello'.rjust(10)
+'Hello     '
+>>>len('Hello     ')
+10
+//ljust is the same as rjust with different direction
+
+>>>'Hello'.rjust(10, '*')
+'Hello*****'
+//fill with '*' to 10 length
+
+//the method center() is the same to use as both rjust and ljust.
+>>> 'Hello'.center(10,'=')
+'==Hello==='
+
+>>> 'strip ex        '.strip()
+'strip ex'
+>>> x='        x        '
+>>> x.strip()
+'x'
+>>> x.lstrip()
+'x        '
+>>> x.rstrip()
+'        x'
+>>>
+>>> y='*****y**y*******'
+>>> y.strip('*')
+'y**y'
+>>> y.lstrip('*')
+'y**y*******'
+>>> y.rstrip('*')
+'*****y**y'
+>>>
+
+>>> strings='Hello World!'
+>>> strings.replace('e','***')
+'H***llo World!'
+>>>
+
+string formating
+>>>a='asd'
+>>>b='bsd'
+>>>'ZZZZ'+a+'ZZZZ'+b
+ZZZZasdZZZZbsd
+>>>'ZZZZ%sZZZZ$s' % (a,b)
+
+//---------------------------------------------------------
+
+#170201
+
+#windows_cmd
+the_cmd+w //no out put result
+for example:
+pythonw file_name
+
+//---------------------------------------------------------
+#170213
+#java #android
+
+if i m on the main thread
+Thread.currentThread().getId()
+the output = 1 means it runs on the main thread
+
+AsyncTask
+onPreExecute 設定可以在這邊設定
+doInBackground 在背景做事情
+onProgressUpdate 可以在這邊告知使用者進度
+onPostExecute 完成背景任務
+
+//---------------------------------------------------------
+
+#170217
+#java #android
+
+printStackTrace()
+
+build->select build variant->debug 修復從別人拿來的code不能run的設定更改
+//---------------------------------------------------------
+
+#170223
+
+#git
+git status
+git add
+git commit -m " the place to input message "
+git log     the file commit log
+git log -p  tht file commit log for detail
+git clone https://userA237533@bitbucket.org/userA237533/myblog.git
+//---------------------------------------------------------
+
+#170225
+
+#php
+after php 5.3 stop use split , should use preg_split() and explode() instead
+
+//---------------------------------------------------------
+
+#170226
+
+#java #android #asynctask
+after 3.0(Honeycomb)
+execute() AsyncTask只能實現串行
+executeOnExecutor(Executor) 實現多個AsyncTask並行
+
+#java #volley
+*** remember to get the internet permission before use ***
+下載多張圖片, 比較適合使用glide來處理,
+volley是屬於輕量級的HTTP Request處理工具, 因此對於大量數據處理,
+例如:下載文件, 效能就沒有那麼理想。
+install volley
+go to
+Gradle Scripts -> build.gradle
+dependencies {
+  compile 'com.mcxiaoke.volley:library:1.0.+'
+}
+after all go to ( Android->Projects ) External Libraries
+-> library-1.0.19 -> com.android.volley
+check if success .
+
+#android #非同步
+AsyncTask Loader Volley Okhttp AsynchronousHttpClient
+
+#api
+提供api以供測試網站:http://requestb.in/
+
+#java #android
+Handler.sendMessage(new Message)
+return
+"android.util.AndroidRuntimeException: This message is already in use"
+因為在sendMessage後 Handler會將你傳送的Message加入MessageQueue
+使得原本的Message已經不是原本的Message
+所以每次sendMessage之前，要重新new Message()
+
+//---------------------------------------------------------
+
+#170301
+#php #basic
+ucwords() 把每个单词的首字符转换为大写
+ucfirst() turn the first word to uppercase
+trim()    remove space white forward and behind
+
+#git
+本地數據庫 C:/myfolder/workspace/ (master)
+提交 git commit
+
+//---------------------------------------------------------
+
+#170303
+
+#git
+git reset Head  取消索引
+git checkout    還原單一檔案 到最新commit狀態
+git reset --hard 還原工作目錄和內容
+
+
+//---------------------------------------------------------
+
+#170308
+
+#php
+rtrim()
+(PHP 4, PHP 5, PHP 7)
+rtrim — Strip whitespace (or other characters) from the end of a string
+
+#php #laravel
+套件
+查閱composer下已安裝那些套件
+https://github.com/lubusIN/laravel-decomposer
+
+//---------------------------------------------------------
+
+#170309
+
+#javascript #套件
+jquery 自動補完表單插件
+http://www.phpddt.com/dhtml/autocomplete-ajax.html
+
+
+#linux
+nginx -t -c /etc/nginx/nginx.conf
+to check wut's wrong with nginx configuration
+
+https://www.phpini.com/linux/ubuntu-16-04-install-nginx-mysql-php-lemp
+Ubuntu Nginx Mysql Php -- LEMP install Guide
+
+//---------------------------------------------------------
+
+#170313
+
+#python #screw
+字元轉換問題
+1. str().encode('utf-8')
+2. add at the begining
+其餘可參考:http://blog.wahahajk.com/2008/08/app-engine.html
+
+
+#java #android
+view
+<RadioGroup
+    android:id="@+id/calcMode"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <RadioButton
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/rbtn_normalMode"
+        android:text="Normal"/>
+
+    <RadioButton
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/rbtn_doMode"
+        android:text="Do."/>
+
+</RadioGroup>
+
+declare at class first
+RadioGroup rgroup_calcMode ;
+
+then write on onCreate where it get
+rgroup_calcMode = (RadioGroup)findViewById(R.id.calcMode) ;
+
+after use switch and getCheckedRadioButtonId() to do what u want
+
+
+//---------------------------------------------------------
+
+#170315
+
+#sublime text
+Sublime Text 的設定檔位置
+Sublime Text 的設定檔的位置依照作業系統而有所區別，如下：
+
+OSX
+~Library/Application Support/Sublime Text 3/Packages/
+
+Windows
+C:\Users\USERNAME\AppData\Roaming\Sublime Text 3\Packages\
+
+Linux
+~/.config/sublime-text-3/Packages/
+
+下的user資料夾
+複製後貼到新的環境下 安裝完Package Control 即可自動同步
+
+
+//---------------------------------------------------------
+//---------------------------------------------------------
+//---------------------------------------------------------

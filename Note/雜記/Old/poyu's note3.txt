@@ -1,0 +1,326 @@
+//---------------------------------------------------------
+
+#170613
+
+#laravel #php
+
+Carbon 時間套件
+https://laravel5-book.kejyun.com/package/tool/package-tool-carbon.html
+
+#Secure
+#csrf
+http://blog.techbridge.cc/2017/02/25/csrf-introduction/
+#xss
+https://blog.davidh83110.com/%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8/%E9%A7%AD%E5%AE%A2%E6%8A%80%E8%A1%93/owasp%20top10/2016/10/10/xss.html
+//---------------------------------------------------------
+
+#170615
+
+#html5
+HTML 5 <input> required 属性
+
+<form action="demo_form.asp" method="get">
+  Name: <input type="text" name="usr_name" required="required" />
+  <input type="submit" />
+</form>
+
+required 屬性規定必須在提交之前填寫輸入
+
+使用該屬性，則該input是必選或必填
+
+適用類型 <input> text, search, url, email, password, date pickers, number, checkbox ,radio ,file
+
+//---------------------------------------------------------
+
+#170616
+
+#laravel #php
+
+運用 helper function -- route() 跳轉get時代入參數
+
+寫在web.php  route設定
+Route::get('user/{id}/profile', function ($id) {
+    //
+})->name('profile');
+
+VC內引用route
+$url = route('profile', ['id' => 1]);
+
+
+//---------------------------------------------------------
+
+#170619
+
+#laravel #php
+
+@include('', 傳值)
+view('', 傳值)
+
+傳值必須是key value配對的array 不能用沒有key的array
+//---------------------------------------------------------
+
+#170628
+
+#git
+git remote add
+git fetch
+https://git-scm.com/book/zh-tw/v1/Git-%E5%9F%BA%E7%A4%8E-%E8%88%87%E9%81%A0%E7%AB%AF%E5%8D%94%E5%90%8C%E5%B7%A5%E4%BD%9C
+//---------------------------------------------------------
+
+#170704
+
+#laravel #php
+
+寫在5.3
+Collect 方法
+map和transform都是遞迴處裡集合內每個物件的
+不同的是，transform處理完後即改變本身，而map不會
+//---------------------------------------------------------
+
+#170708
+
+Vue + Vuex + Vue-router
+
+#相依注入
+<?php
+
+use App/User;
+
+class userController extends Controller
+{
+    protected $user;
+
+    public function _construct(User $users)
+    {
+        $this->$user = $users;
+    }
+
+    public function getMail($id)
+    {
+        $user = $this->user->find($id);
+        $mail = $user->mail;
+
+        return $mail;
+    }
+
+
+}
+
+//---------------------------------------------------------
+
+#170710
+
+#laravel #php
+
+laravel function redirect()->intended() 會導向至被Middleware擋下來前原本欲前往的頁面
+但是Middleware裡必須設置redirect()->guest()
+laravel 才知道要到intended前的網頁是要導向哪邊
+結論: 要用intended()記得先用guest()導向，不然會發生一直登入不進去的狀況
+
+//---------------------------------------------------------
+
+#170723
+
+#vue
+http-vue-loader 寫好的Vue檔後，可以不經vue-cli或是webpack打包，就呈現在網頁上
+主要是方便做測試
+
+vue
+//---------------------------------------------------------
+
+#170728
+
+#laravel #php
+
+$request->path()    取得現在的路徑資訊
+$request->url()     取得現在的URL
+$request->fullUrl() 取得現在的URL包含後面所帶的參數
+$reqeust->query()   取得URL後面所帶的參數，用array表示 {key=>value,}
+//---------------------------------------------------------
+
+#170801
+
+#laravel #php
+
+$collection = collect([
+        array('id'=>'1', 'name'=>'12', 'old'=>'13'),
+        array('id'=>'21', 'name'=>'22', 'old'=>'23'),
+        array('id'=>'31', 'name'=>'32', 'old'=>'33')
+    ]);
+    $value = '';
+    $test = $collection->each(function ($option, $index) use ($value) {
+        $value .= $option['name']."  ";
+    });
+    dd($value); // ouput : ""
+
+$collection = collect([
+        array('id'=>'1', 'name'=>'12', 'old'=>'13'),
+        array('id'=>'21', 'name'=>'22', 'old'=>'23'),
+        array('id'=>'31', 'name'=>'32', 'old'=>'33')
+    ]);
+    $value = '';
+    $test = $collection->each(function ($option, $index) use (&$value) {
+        $value .= $option['name']."  ";
+    });
+    dd($value); // ouput : "12  22  32  "
+
+    差一個"&"而已，我現在也想不到為啥
+    以後function裡的變數不會變化嘗試加一個"&"吧zzzzz
+
+    以下是個很好的例子
+    &就是把$o的指標指向$thing  轉址!?
+
+$thing = "foo";
+
+$o = &$thing;
+
+echo $o; // echos foo
+
+$thing = "bar";
+
+echo $o; // echos bar
+
+//---------------------------------------------------------
+
+#170803
+
+#develop tools
+
+Chrome瀏覽器F12開發者模式，再關閉旁邊有三個點，點擊進去後選more tool有個Coverage可以看代碼的利用率
+藉此來看是那些js css 或是 script再拖慢網頁前端資源
+
+//---------------------------------------------------------
+
+#170804
+
+#OOP
+SOLID
+
+1.SRP - 單一職責原則 Single Responsibility Principle
+一個類別只做一種事。
+
+2.OCP - 開放/關閉原則 Open-Closed Principle
+程式可藉由只動到抽象而不用動到類別本體做修改
+Ex.
+class cart
+{
+    protected item; // cart內的物品
+
+    public function addItem($foo, $bar)
+    {
+        // 判斷是否有庫存 *
+        $this->check->stock();
+
+        // 加入購物車
+        $this->item ....;
+
+        // 判斷有沒有優惠 *
+        $this->check->discount();
+    }
+}
+
+3.LSP - 里氏替換原則 Liskov Substitution Principle
+子類別可以擴展父類別的功能，但不能變父類別的功能
+
+3.LKP - 最小知識原則 Least Knowledge Principle (a.k.a 迪米特法則 Law of Demeter)
+盡可能減少類別中的 public method，降低其他類別對此類別的耦合。
+把一件完整的事情封裝起來！
+ex: 不要讓 Controller 知道太多操作的細節
+
+4.ISP - 介面隔離原則 Interface Segregation Principle
+不要去加入用不到的介面，介面應該切成最小單位再去implement
+interface forA {
+    public function functionA ();
+}
+
+interface forB {
+    public function functionB ();
+}
+
+interface forAll {
+    public function function1 ();
+    public function function2 ();
+    public function function3 ();
+}
+
+class A implements forA, forAll {...};
+class B implements forB, forAll {...};
+
+5.DIP - 依頼反轉原則 Dependency Inversion Principle
+互動的部份交給抽象類別或介面
+會改變的實作放到子類別
+Ex: 用 iPhone 跟家人通話 (依頼 iPhone 實作)
+Ex: 用 手機 跟家人通話 (不依頼 iPhone 實作，只要實作「手機」介面就行了)
+
+//---------------------------------------------------------
+
+#170812
+
+python keylogger  pykeylogger(https://sourceforge.net/p/pykeylogger/wiki/Main_Page/#pykeylogger)
+
+pyautogui python auto use mouse and keyboard control the system
+//---------------------------------------------------------
+
+#170814
+
+#php
+Type Hint
+型別
+在方法中加入參數時，如果有加入型別，則設定預設值為null該參數變為可選
+
+function (Callable $c = $d)
+{
+    // do something
+}
+
+Callable為型別，$c為加入的參數名稱，$d為設定的預設值
+
+其他的型別還有array interface class
+
+Callable 在php5.4後可用
+其餘5.3
+//---------------------------------------------------------
+
+#170818
+
+#php #test
+三A原則
+Arrange : 預期目標
+Act     : 實際目標
+Assert  : 驗證是否合乎預期
+
+寫測試時盡量不要在裡面用if else 因為你用的if else沒有經過測試，但是unit提供的assert是經過測試的
+
+TDD三原則
+測試第一步 出現第一個紅燈
+第二步     出現紅燈之後先將那個紅燈改成綠燈，而不是製造更多紅燈
+
+//---------------------------------------------------------
+
+#170820
+
+#php #test
+測試前頭打上
+/**
+ * @group xxxx
+ */
+
+然後執行 vendor/bin/phpunit --group=xxxx
+就可以只跑相同group的測試
+
+多型取代switch 使用物件導向多型的state模式或是Strategy模式
+//---------------------------------------------------------
+
+#170820
+
+#php #laravel #dingo
+dingo 安裝時如果打
+composer require dingo/api:1.0.x@dev
+失敗
+
+那就進入composer.json
+新增require
+"require": {
+    "dingo/api": "1.0.*@dev"
+}
+這樣之後composer update即可

@@ -1,0 +1,453 @@
+//---------------------------------------------------------
+
+#170319
+
+#git
+HEAD:目前所在位置指標
+* git branch  瀏覽目前分支
+* git checkout git_log 編號前四碼
+* git checkout master  回到當前master
+
+* git branch branchname 開新分支
+* git chechouot branchname
+* git merge branchname 合併到當前HEAD
+* git rebase
+git rebase 會基於 master branch 目前最後一次的 commit 內容再往後把你在 cat branch 上commit 的內容加上去，我們現在在 cat branch 輸入 git rebase master 來將 cat branch 基於 master branch 做 rebase。
+
+開發過程中，若你在開發的 branch 功能比較多， commit 的量也比較多時，建議使用rebase將你現在的 branch 整理過再合併回主幹，這樣會產生較漂亮的線圖
+
+查詢檔案: git tag
+查詢詳細標籤: git tag -n
+刪除標籤:git tag -d 標籤名稱
+新增輕量標籤:git tag 標籤名稱
+新增標示標籤:git tag -am "備註內容" 標籤名稱
+
+切換到標籤commit : git checkout 標籤名稱
+
+git stash - 暫時儲存當前目錄
+git stash list - 瀏覽 git stash 列表
+git stash pop - 還原暫存
+git stash drop - 清除最新暫存
+git stash clear - 清除全部暫存
+
+git remote - 查詢遠端數據庫
+git remote rename 原名稱 修改f名稱
+git push origin master
+         [預設遠端主機名稱] [分支名稱]
+git clone https://userA237533@bitbucket.org/userA237533/myauthdemo.git
+//---------------------------------------------------------
+
+#070320
+
+#php #laravel
+php artisan migrate
+時出現錯誤
+* SQLSTATE[42000]: Syntax error or access violation:
+* 1071 Specified key was too long; max key length is 767 bytes
+
+解決方法:
+AppSericeProvider.php 加入
+* use Illuminate\Support\Facades\Schema;
+* public function boot()
+* {
+*     Schema::defaultStringLength(191);
+* }
+
+//---------------------------------------------------------
+
+#170321
+
+#php #laravel
+在blade中
+<input name="test_value" value="{!! old('test_value') !!}">
+
+post 後
+controller可用request get('test_value') 取得value裡的應對 name="test_value" 的session
+
+
+#php #laravel
+在blade中
+網址導向{!! url('/the_route_you_set') !!}
+比較不會因為前面網址變動而出錯
+
+
+//---------------------------------------------------------
+
+#1703223
+
+#php #laravel
+Socialite facebook login demo
+* https://blog.damirmiladinov.com/laravel/laravel-5.2-socialite-facebook-login.html#.WNMd0Wh942y
+//---------------------------------------------------------
+
+#170407
+
+#job
+Carlos的package.json沒有寫到bower 的相依安裝，所以在npm install 前要先npm install bower 然後再bower i -g bower
+之後npm install
+npm run dev 就好
+
+//---------------------------------------------------------
+
+#170417
+
+#linux cmd
+$ cp /from/filename.txt /to/newfile.txt
+從/from/filename.txt 複製到/to下，改名newfile.txt
+
+$ cp /from/filename.txt /to/
+從/from/filename.txt 複製到/to下，名稱不變
+
+$ cp -R /from/dir_name /to/
+/from/dir_name目錄及全部內容，複製到/to/下
+
+$ cp index.php info.php /home/phpini/
+複製index.php info.php 到/home/phpini下
+
+$ cp /var/www/html/*.php /home/phpini/
+/var/www/html下所有.php結尾的檔案複製到/home/phpini下
+
+$ cp -Rp /var/www/html /home/phpini/
+-p參數會連同檔案或目錄屬性一同複製,包括檔案時間 所有者 及權限
+/var/www/html 完整複製到  /home/phpini/裡面
+
+
+//---------------------------------------------------------
+
+#170418
+
+#php #laravel
+Database>migration裡面檔案 morphs() 的後面不能接 nullable()
+$table->morphs('table_name')->nullable() ; 是錯誤的
+
+
+
+//---------------------------------------------------------
+
+#170419
+
+#cent os 7
+
+===========================================================
+centos7 server新增使用者流程
+-----------------------------------------------------------
+$ adduser user_name          # 新增使用者 user_name
+$ passwd user_name           # 為user_name設定使用者密碼
+$ gpasswd -a user_name wheel # 將user_name加至wheel群組(註1)
+$ sudo lid -g wheel          # 查詢在wheel裡面的使用者 (註2)
+$ sudo lid  user_name        # 查詢user_name在哪個群組裡
+$ userdel user_name          # 刪除user_name (註3)
+
+-----------------------------------------------------------
+註1> wheel group (which gives sudo access to all of its
+members by default)
+註2> lid is normally used to show which groups a user
+belongs to, but with the -g flag, you can reverse it and
+show which users belong in a group
+註3> If you want to delete the user's home directory
+along with the user account itself, type this command
+as root
+
+With either command, the user will automatically be
+removed from any groups that they were added to, including
+the wheel group if they were given sudo privileges. If you
+later add another user with the same name, they will have
+to be added to the wheel group again to gain sudo access.
+===========================================================
+
+===========================================================
+mysql 新增使用者流程
+===========================================================
+$ mysql -u User_name -p                #以User_name登入mysql
+>>> SELECT User, Host FROM mysql.user; #查詢mysql所有user
+>>> SHOW DATABASES;                    #查詢所有資料庫
+>>> CREATE USER 'user_name'@'權限' IDENTIFIED BY 'Password';
+#創造一個 mysql user
+>>> SET PASSWORD FOR '目標使用者'@'主機' = PASSWORD('密碼');
+
+>>> GRANT ALL PRIVILEGES ON newdatabase.* TO
+>>> 'newuser'@'localhost';            #對使用者開放資料庫權限
+
+>>> UPDATE mysql.user SET HOST='%'
+>>> WHERE User='__here_your_username';
+>>> # make the user is allowed remote access
+
+>>> Drop USER user_name@'主機';
+
+>>> FLUSH PRIVILEGES;                 # 重載系統許可權
+===========================================================
+
+ php artisan store:check-just-opened
+ crontab -e
+
+
+
+//---------------------------------------------------------
+
+#170420
+
+#cent os 7
+
+===========================================================
+centos7 server 設定時間流程
+-----------------------------------------------------------
+$ timedatectl                          #顯示當下時區設定
+$ timedatectl list-timezones           #顯示時區列表
+$ timedatectl set-timezone Asia/Taipei #設定時區 亞洲/台北
+$ timedatectl set-local-rtc 0          #set local rtc off
+===========================================================
+
+===========================================================
+centos7 server ssl setup 可以看這篇
+-----------------------------------------------------------
+https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-centos-7
+===========================================================
+
+===========================================================
+centos7 server 瀏覽使用者驗證 nginx Authentication
+-----------------------------------------------------------
+$ sudo yum install -y httpd-tools
+$ sudo htpasswd -c /etc/nginx/.htpasswd user_name
+>>> new passwd : enter_password
+$ cat /etc/nginx/.htpasswd   # 查看使用者驗證帳密設定
+
+$ sudo vi /etc/nginx/nginx.conf  #設定nginx.conf檔
+
+...
+server{
+    .
+    .
+    .
+    auth_basic "顯示訊息" ;
+    auth_basic_user_file /etc/nginx/.htpasswd;
+}
+...
+
+最後
+$ sudo systemctl reload nginx
+===========================================================
+
+
+
+//---------------------------------------------------------
+
+#170423
+
+#python
+===========================================================
+python sys函示庫的應用
+用sys.argv讀取cmd開啟帶入的變數
+-----------------------------------------------------------
+sys.argv         # ['fileName', '帶入的變數1', '帶入的變數2']
+sys.argv[1]      # 帶入的變數一
+sys.argv[2]      # 帶入的變數2
+
+> if len(sys.argv)<2:
+# 判斷有無帶入變數，因為第一個sys.argv[0]永遠是檔案名
+# ，所以要判斷是否大於等於2，才可以知道是否有帶入變數
+-----------------------------------------------------------
+參考網站
+http://imsardine.simplbug.com/note/cli/python/arguments.html
+http://ripple0129.blogspot.tw/2014/07/python-sysargv.html
+===========================================================
+
+//---------------------------------------------------------
+
+#170425
+
+#centos
+===========================================================
+在Centos上，設定Firewalld
+-----------------------------------------------------------
+# 安裝
+$ sudo yum install firewalld
+
+$ sudo systemctl start firewalld.service   # 開啟Firewalld
+$ sudo systemctl stop firewalld.service    # 關閉Firewalld
+$ sudo systemctl status firewalld.service  # 查詢Firewalld
+
+$ firewall-cmd --state                # Firewalld 狀態
+$ firewall-cmd --get-default-zone     # 現在預設群組
+$ firewall-cmd --list-all             # list firewall state
+
+# 開啟特定port權限 下面以5000/tcp port為例
+$ sudo firewall-cmd --zone=public --permanent --add-port=5000/tcp
+
+$ sudo firewall-cmd --reload          # Firewalld 重載
+----------------------------------------------------------
+參考連結: https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-using-firewalld-on-centos-7
+===========================================================
+
+//---------------------------------------------------------
+
+#170426
+
+#centos
+===========================================================
+Disable root ssh login
+-----------------------------------------------------------
+$ sudo vi /etc/ssh/sshd_config
+
+(default)
+# PermitRootLogin yes
+
+(after)
+PermitRootLogin no
+
+$ sudo systemctl reload sshd
+===========================================================
+
+//---------------------------------------------------------
+
+#170427
+
+#laravel #php
+===========================================================
+-----------------------------------------------------------
+Schema::drop('users');
+
+// Better
+Schema::dropIfExists('users');
+===========================================================
+//---------------------------------------------------------
+
+#170611
+
+#laravel #php
+
+====================================================================
+laravel collect 筆記
+====================================================================
+all() or toArray()
+all() 將集合轉換為陣列
+toArray() 將集合轉換為陣列，其中的任何Eloquent物件一樣會轉換為陣列，all()則否
+--------------------------------------------------------------------
+filter() and reject()
+filter() 若closure回傳true則保留項目
+reject() 若closure回傳false則保留項目
+
+EX:
+$users = collect([.....]);
+$admins = $users->filter(function ($user) {
+    return $user->isAdmin;
+});
+$paidUsers = $users->reject(function ($user) {
+    return $user->isTrial;
+});
+--------------------------------------------------------------------
+map()
+如果要迭代集合內所有項目、改變並回傳新集合
+
+EX:
+$users = collect([.....]);
+$users = $users->map(function ($user) {
+    return [
+        'name' = $user['first'].'_'.$user['last'],
+        'email' = $user['email']
+    ];
+});
+--------------------------------------------------------------------
+reduce()
+如果想從集合取得一個結果，例如:數字或字串，可使用reduce()。
+
+EX:
+$users = collect([.....]);
+$point = $users->reduce(function ($carry, $user) {
+    return $carry + $user['points']
+}, 0);//carry為0開始
+--------------------------------------------------------------------
+pluck()
+拉出所有集合項目的值
+EX:
+$users = collect([.....]);
+$emails = $users->pluck('email')->toArray();
+--------------------------------------------------------------------
+take()
+取出若干筆資料
+
+chunk()
+將資料切成指定大小的群組
+
+groupBy()
+分組
+
+reverse()
+項目順序反轉
+
+shuffle()
+項目順序隨機排列
+====================================================================
+
+
+====================================================================
+laravel 筆記 session
+====================================================================
+session()->get()    取出
+session()->put()    儲存
+session()->pull()   取出後刪除
+session()->forget() 移除前一個設定的session值
+session()->flush()  移除每一個設定的session
+session()->regenerate()  重新產生session ID
+
+session()->flash()  設定一個session來提供一個值，僅提供下一個網頁使用
+session()->reflash()還原flash內容在下一個網頁使用
+session()->keep()
+
+快取與session差別在於，快取是為每一個應用程式儲存的，
+而session則是為每個用戶儲存的
+
+====================================================================
+
+
+====================================================================
+laravel 筆記 cookie
+====================================================================
+
+
+====================================================================
+
+====================================================================
+LocalStorage Note
+====================================================================
+$(document).ready(function() {
+        if(window.localStorage) {
+            console.log('supportLocalStorage');
+        }
+        $('#lcl_save').click(function(event) {
+            /* Act on the event */
+            console.log('lcl_save click');
+            save_localstorage($('#lcl').val());
+        });
+
+        $('#lcl_load').click(function(event) {
+            /* Act on the event */
+            console.log('lcl_load click');
+            load_localstorage();
+        });
+    });
+
+    function load_localstorage() {
+        $('#lcl').val(localStorage['lcl']);
+    }
+    function save_localstorage(input) {
+        if(window.localStorage) {
+            localStorage['lcl'] = input;
+        }
+    }
+====================================================================
+
+//---------------------------------------------------------
+//---------------------------------------------------------
+//---------------------------------------------------------
+//---------------------------------------------------------
+//---------------------------------------------------------
+//---------------------------------------------------------
+//---------------------------------------------------------
+
+
+cW8noPfpmzY:APA91bGP-Cz68vamlRWORJOK_16HbY1bx6J1hJIFq1kUtRl_ycSczE5OsG7uDECwf9yOma4qrOezEbw9rvPF0kP5jXSloD4Kaw2c-brTYRyJLqBblmrGukmR2ngMNUOBEG3T5jYSx2Dz
+
+
+算圖的速度和 CPU 有關
+材質球的材質連結和記憶體有關
+特效的運算還有在建模介面的流暢度和顯示卡有關
