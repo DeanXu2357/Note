@@ -1,0 +1,19 @@
+回去查__invoke
+arrayaccess predefine interface
+() ? :
+??
+
+iterator 內建 new ArrayIterator() 給他一個可被迭代的東西
+
+call_user_func_array
+
+github sasaya vim
+    tcomment_vim vim pulgin for comment fast
+    phpcd.vim
+    php-namespace
+    nerdtree
+    multi-process
+    ctrl p
+    vim-surround
+    autoclose
+    vim-snipmate
