@@ -1,0 +1,388 @@
+1、連線進 Staging Server，並切換成 root 權限。
+    $ ssh 5breakfast_user@128.199.170.194
+    $ su   #輸入 root 密碼
+
+2、進到專案資料夾
+    $ cd cd /var/www/html/5breakfast_web
+
+3、依序執行以下 Git 指令
+    $ git status
+    $ git stash
+    $ git stash clear
+    $ git pull origin develop
+
+4、執行其它相關指令
+    $ composer install
+    $ php artisan migrate
+    $ bower i -g bower --allow-root
+    $ npm run dev
+
+5、改變資料夾權限
+    $ chmod -R 777 storage
+    $ cd ..
+    $ chown -R apache:apache 5breakfast_web
+
+
+=====  初次建置  =====
+===========================================================
+安裝Nginx
+-----------------------------------------------------------
+# 加入epel容器庫
+$ sudo yum install epel-release
+$ sudo yum install nginx
+接下來連到伺服器的IP
+http://server_domain_name_or_IP/
+會看到welcome to nginx 頁面
+
+# 自動開啟
+$ sudo systemctl enable nginx
+
+# 查詢伺服器IP
+$ ip addr show eth0 | grep inet | awk '{ print $2; }' | sed 's/\/.*$//'
+
+===========================================================
+
+===========================================================
+安裝Mysql
+-----------------------------------------------------------
+# 安裝
+$ sudo yum install mysql
+
+# mysql 啟動 狀態 重新啟動 停止
+$ sudo systemctl start mysqld
+$ sudo systemctl status mysqld
+$ sudo systemctl restart mysqld
+$ sudo systemctl stop mysqld
+
+# 開機自啟
+$ sudo systemctl enable mysqld
+
+# 資料庫初始化設定
+$ sudo mysql_secure_installation
+-----------------------------------------------------------
+& setup
+-----------------------------------------------------------
+$ mysql -u User_name -p                #以User_name登入mysql
+>>> SELECT User, Host FROM mysql.user; #查詢mysql所有user
+>>> SHOW DATABASES;                    #查詢所有資料庫
+>>> CREATE USER 'user_name'@'權限' IDENTIFIED BY 'Password';
+#創造一個 mysql user
+>>> SET PASSWORD FOR '目標使用者'@'主機' = PASSWORD('密碼');
+
+>>> GRANT ALL PRIVILEGES ON newdatabase.* TO
+>>> 'newuser'@'localhost';            #對使用者開放資料庫權限
+
+>>> UPDATE mysql.user SET HOST='%'
+>>> WHERE User='__here_your_username';
+>>> # make the user is allowed remote access
+
+>>> Drop USER user_name@'主機';
+
+>>> FLUSH PRIVILEGES;                   # 重載系統許可權
+>>> show variables like '%time_zone%';  # 查看mysql時區設定
+===========================================================
+
+===========================================================
+安裝php 7
+===========================================================
+# 安裝php-fpm
+$ sudo yum install php70u-fpm-nginx php70u-cli php70u-mysqlnd
+
+# 安裝完後 以編輯程式開啟 /etc/php-fpm.d/www.conf
+$ sudo vi /etc/php-fpm.d/www.conf
+listen.acl_users = nginx
+listen.acl_groups = nginx
+兩行註解拿掉
+
+確保
+listen = 12.0.0.1:9000
+沒有被註解掉
+
+# 以編輯開啟/etc/nginx/conf.d/php-fpm.conf
+$ sudo vi /etc/nginx/conf.d/php-fpm.conf
+
+upstream php-fpm {
+    server 127.0.0.1:9000; #確定這段沒註解掉
+}
+
+# 以編輯器開啟/etc/nginx/conf.d/default.conf
+location ~ \.php$ {
+    try_files $uri =404;
+    fastcgi_pass 127.0.0.1:9000;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_param SCRIPT_NAME $scritpt_name;
+    include fastcgi_params;
+}
+
+在conf.d/default.conf的這個設定檔，是因為
+在你的/etc/nginx/nginx.conf裡面有一行
+include /etc/nginx/conf.d/*.conf;
+所以在/etc/nginx/conf.d裡，所有結尾是.conf的檔案
+都會被include進到/etc/nginx/nginx.conf
+
+nginx.conf裡面的格式通常都是
+http {
+    #一個domain 一個port寫一個設定檔
+    server {
+        listen port_number;
+        server_name serverName;
+
+        root /專案檔案夾位址;
+        index index.php index.html index.htm;
+
+        location / {
+            try_files $uri $uri/ /index.php?$query_string;
+        }
+
+        location ~ /.well-known {
+            allow all;
+        }
+
+        error_page 404 /404.html;
+        error_page 500 502 503 504 /50x.html;
+        location = /50x.html {
+            root /50x錯誤頁面放置位址
+        }
+
+        location ~ \.php$ {
+            try_files $uri =404;
+            fastcgi_pass 127.0.0.1:9000;
+            fastcgi_index index.php;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            fastcgi_param SCIRPT_NAME $fastcgi_script_name;
+            include fastcgi_params;
+        }
+    }
+}
+
+#測試php
+$ php -v
+實際寫個phpinfo()下去跑 看有沒有東西出來
+
+===========================================================
+安裝composer
+-----------------------------------------------------------
+$ yum -y update
+$ curl -sS https://getcomposer.org/installer | php
+$ chmod +x composer.phar
+$ mv composer.phar /usr/local/bin/composer
+$ composer -v
+-----------------------------------------------------------
+安裝npm
+-----------------------------------------------------------
+$ sudo yum install npm
+$ sudo npm install
+
+# 注意:過程中可能會缺少特定php extention
+# 視情況執行sudo install yum install 即可
+# 依上面安裝php7 可能會缺少 php70u-bamath php70u-mbstring
+# php70u-intl php70u-ext等元件
+===========================================================
+
+===========================================================
+安裝imagemagick 和 mozjpeg
+-----------------------------------------------------------
+imagemagick
+-----------------------------------------------------------
+https://www.phpini.com/php/rhel-centos-install-imagemagick-imagick
+-----------------------------------------------------------
+mozjpeg
+-----------------------------------------------------------
+$ yum install autoconf automake libtool nasm make
+$ mkdir /moz
+$ cd /moz
+$ wget https://github.com/mozilla/mozjpeg/releases/download/v3.1/mozjpeg-3.1-release-source.tar.gz
+$ tar xzf mozjpeg-3.1-release-source.tar.gz
+
+// Build
+$ cd mozjpeg
+$ ./configure
+$ make install prefix=/etc/mozjpeg libdir=/etc/mozjpeg/lib64
+$ make install
+
+// Delete /moz and symlink
+$ rm -rf /moz
+$ cp /etc/mozjpeg/bin/cjpeg /usr/bin/cjpeg
+
+// 即可使用以下語法：
+$ cjpeg -copy none -optimize -quality 70 image.jpg > compressed.jpg
+===========================================================
+
+===========================================================
+在Centos上，設定Firewalld
+-----------------------------------------------------------
+# 安裝
+$ sudo yum install firewalld
+
+$ sudo systemctl start firewalld.service   # 開啟Firewalld
+$ sudo systemctl stop firewalld.service    # 關閉Firewalld
+$ sudo systemctl status firewalld.service  # 查詢Firewalld
+
+$ firewall-cmd --state                # Firewalld 狀態
+$ firewall-cmd --get-default-zone     # 現在預設群組
+$ firewall-cmd --list-all             # list firewall state
+
+# 開啟特定port權限 下面以5000/tcp port為例
+$ sudo firewall-cmd --zone=public --permanent --add-port=5000/tcp
+
+$ sudo firewall-cmd --reload          # Firewalld 重載
+----------------------------------------------------------
+參考連結: https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-using-firewalld-on-centos-7
+===========================================================
+
+===========================================================
+每日排程設定
+-----------------------------------------------------------
+$ crontab -e
+
+* * * * * php /path/to/artisan schedule:run >> /dev/null 2>&1
+===========================================================
+
+===========================================================
+centos7 server新增使用者流程
+-----------------------------------------------------------
+$ adduser user_name          # 新增使用者 user_name
+$ passwd user_name           # 為user_name設定使用者密碼
+$ gpasswd -a user_name wheel # 將user_name加至wheel群組(註1)
+$ sudo lid -g wheel          # 查詢在wheel裡面的使用者 (註2)
+$ sudo lid  user_name        # 查詢user_name在哪個群組裡
+$ userdel user_name          # 刪除user_name (註3)
+
+-----------------------------------------------------------
+註1> wheel group (which gives sudo access to all of its
+members by default)
+註2> lid is normally used to show which groups a user
+belongs to, but with the -g flag, you can reverse it and
+show which users belong in a group
+註3> If you want to delete the user's home directory
+along with the user account itself, type this command
+as root
+
+With either command, the user will automatically be
+removed from any groups that they were added to, including
+the wheel group if they were given sudo privileges. If you
+later add another user with the same name, they will have
+to be added to the wheel group again to gain sudo access.
+===========================================================
+
+===========================================================
+Disable root ssh login 禁止root遠端登入
+-----------------------------------------------------------
+$ sudo vi /etc/ssh/sshd_config
+
+(default)
+# PermitRootLogin yes
+
+(after)
+PermitRootLogin no
+
+$ sudo systemctl reload sshd
+===========================================================
+
+===========================================================
+centos7 server ssl setup 可以看這篇
+-----------------------------------------------------------
+https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-centos-7
+===========================================================
+
+===========================================================
+centos7 server 瀏覽使用者驗證 nginx Authentication
+-----------------------------------------------------------
+$ sudo yum install -y httpd-tools
+$ sudo htpasswd -c /etc/nginx/.htpasswd user_name
+>>> new passwd : enter_password
+$ cat /etc/nginx/.htpasswd   # 查看使用者驗證帳密設定
+
+$ sudo vi /etc/nginx/nginx.conf  #設定nginx.conf檔
+
+...
+server{
+    .
+    .
+    .
+    auth_basic "顯示訊息" ;
+    auth_basic_user_file /etc/nginx/.htpasswd;
+}
+...
+
+最後
+$ sudo systemctl reload nginx
+===========================================================
+
+===========================================================
+centos7 server 設定時間流程
+-----------------------------------------------------------
+$ timedatectl                          #顯示當下時區設定
+$ timedatectl list-timezones           #顯示時區列表
+$ timedatectl set-timezone Asia/Taipei #設定時區 亞洲/台北
+$ timedatectl set-local-rtc 0          #set local rtc off
+===========================================================
+
+
+===========================================================
+建置環境 (步驟)
+-----------------------------------------------------------
+1. 安裝 LEMP
+2. 安裝 composer
+3. 安裝 npm
+4. 安裝 git
+5. 安裝 ImageMagick
+6. 安裝 mozjpeg
+7. git clone 至 nginx root
+8. 設置 .env
+9. 執行 $ composer install
+10.執行 $ php artisan migrate
+11.執行 $ crontab -e
+12.執行 $ sudo npm install bower
+13.執行 $ bower i -g bower --allow-root
+14.執行 $ sudo npm install
+15.執行 $ npm run dev
+16.執行 $ chmod -R 777 storage # 於專案根目錄
+17.執行 $ chmod -R 777 uploads # 於專案/public底下 (包含其他底下folder)
+18.架設SSL
+19.FB account kit setup
+===========================================================
+
+===========================================================
+部署 (步驟)
+-----------------------------------------------------------
+1. 於專案根目錄
+2. sudo git stash
+3. sudo git pull
+4. sudo git stash clear
+5. bower i -g bower --allow-root
+6. sudo npm install
+7. npm run dev
+8. php artisan migrate
+===========================================================
+
+===========================================================
+server
+-----------------------------------------------------------
+1. 更改root密碼
+2. 新增普通帳號
+3. 禁止root 使用ssh登入
+4. 更換ssh 端口
+5. 使用ssh key登入server
+6. 防火牆
+7. 每日更新
+===========================================================
+
+===========================================================
+未來文章改版重點
+1. centos7 如何用remi版update Php7.1
+2. nginx conf path 詳細解釋使用php的設定
+-----------------------------------------------------------
+===========================================================
+
+===========================================================
+nginx 相關指令
+-----------------------------------------------------------
+sudo service nginx restart
+sudo systemctl restart nginx
+以上 restart 可以替換成 start stop status reload
+
+確認nginx config錯誤訊息
+sudo nginx -t
+===========================================================
