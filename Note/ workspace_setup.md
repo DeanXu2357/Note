@@ -53,6 +53,7 @@ sudo apt-get install php-fpm php-mysql
     (optional) sudo apt-get remove php7.0
     sudo apt-get install php7.1 php7.1-fpm (from comments)
 
+```sudo apt-get install php7.0-mbstring php7.0-xml```
 
 cd /etc/php/版本/fpm  
 sudo vi php.ini
@@ -100,7 +101,7 @@ sudo vi default
         server_name server_domain_or_IP;
     
         location / {
-            try_files $uri $uri/ =404;
+            try_files $uri $uri/ /index.php?$query_string;;
         }
     
         location \.php$ {
@@ -118,7 +119,30 @@ sudo vi default
 參照官網  
 記得結束後執行```sudo mv composer.phar /usr/loacl/bin/composer```設成全域
 
+## .composer/vendor/bin加到環境變數  
+這種方法只有當下那個termainal會加到全域變數
+```
+export PATH="$PATH:$HOME/.composer/vendor/bin"
+```
+要執行
+```
+echo 'export PATH="$PATH:$HOME/.composer/vendor/bin"' >> ~/.bashrc
+```
+然後
+```
+source ~/.bashrc
+```
+
+> P.S. 上述加到全域變數，最好使用```$HOME```而不是```~```
+
+> 回復環境變數設定值到初始  
+> ```/bin/cp /etc/skel/.bashrc ~/```   
+> ```source ~/.bashrc``` 
 ---
 
 # chrome 安裝
 官網下載完畢後用```sudo apt install 路徑```安裝下載的.deb檔案即可
+---
+
+
+
