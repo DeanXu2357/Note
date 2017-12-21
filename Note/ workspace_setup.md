@@ -53,7 +53,11 @@ sudo apt-get install php-fpm php-mysql
     (optional) sudo apt-get remove php7.0
     sudo apt-get install php7.1 php7.1-fpm (from comments)
 
-```sudo apt-get install php7.0-mbstring php7.0-xml```
+```sudo apt-get install php7.0-mbstring php7.0-xml```  
+以下為完整板
+```
+sudo apt install nginx php7.1-fpm php7.1-cli php7.1-common php7.1-json php7.1-opcache php7.1-mysql php7.1-phpdbg php7.1-mbstring php7.1-gd php7.1-imap php7.1-ldap php7.1-pgsql php7.1-pspell php7.1-recode php7.1-soap php7.1-tidy php7.1-dev php7.1-intl php7.1-curl php7.1-zip php7.1-xml php-xdebug
+```
 
 cd /etc/php/版本/fpm  
 sudo vi php.ini
@@ -144,5 +148,22 @@ source ~/.bashrc
 官網下載完畢後用```sudo apt install 路徑```安裝下載的.deb檔案即可
 ---
 
+# Optional 
 
+## xdebug 安裝
+
+到```/etc/php/7.1/mods-available/xdebug.ini```
+寫入以下
+
+    zend_extension=xdebug.so # If not already
+    xdebug.remote_enable=1
+    xdebug.remote_autostart = 1
+    xdebug.remote_handler=dbgp
+    xdebug.remote_mode=req
+    xdebug.remote_host=localhost
+    xdebug.remote_port=9000
+    xdebug.var_display_max_depth = -1
+    xdebug.var_display_max_children = -1
+    xdebug.var_display_max_data = -1
+    xdebug.idekey = "PHPSTORM" # 如果你是用php storm再複製
 
