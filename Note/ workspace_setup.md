@@ -28,39 +28,46 @@ $ sudo apt-get install git
 ---
 # Nginx
 
+```
 sudo apt-get update
 sudo apt-get install nginx
 
 sudo ufw allow 'Nginx HTTP'
 
 sudo ufw status
+```
 ---
 # mysql
 
+```
 sudo apt-get install mysql-server
 
 mysql_secure_installation
+```
 
 ---
 # php
 
-sudo apt-get install php-fpm php-mysql
+```sudo apt-get install php-fpm php-mysql```
 
-    optional 安裝php7.1   
-    sudo apt install software-properties-common (允許使用安裝第三方ppa)
-    sudo add-apt-repository ppa:ondrej/php (php7.1 ppa)
-    sudo apt-get update
-    (optional) sudo apt-get remove php7.0
-    sudo apt-get install php7.1 php7.1-fpm (from comments)
+optional 安裝php7.1   
+```
+sudo apt install software-properties-common (允許使用安裝第三方ppa)
+sudo add-apt-repository ppa:ondrej/php (php7.1 ppa)
+sudo apt-get update
+(optional) sudo apt-get remove php7.0
+sudo apt-get install php7.1 php7.1-fpm (from comments)
+```
 
-```sudo apt-get install php7.0-mbstring php7.0-xml```  
 以下為完整板
 ```
 sudo apt install -y nginx php7.1 php7.1-fpm php7.1-cli php7.1-common php7.1-json php7.1-opcache php7.1-mysql php7.1-phpdbg php7.1-mbstring php7.1-gd php7.1-imap php7.1-ldap php7.1-pgsql php7.1-pspell php7.1-recode php7.1-soap php7.1-tidy php7.1-dev php7.1-intl php7.1-curl php7.1-zip php7.1-xml php-xdebug
 ```
 
+```
 cd /etc/php/版本/fpm  
 sudo vi php.ini
+```
 >  將文本內容裡的```;cgi.fix_pathinfo=1```  
 改成```cgi.fix_pathinfo=0```
  
@@ -70,7 +77,7 @@ sudo vi php.ini
 行，想當然爾，這樣會讓我們的網頁執行我們本來不想讓  
 他執行的php檔案，從而造成安全性上的問題。
 
-sudo systemctl restart php7.1-fpm   
+```sudo systemctl restart php7.1-fpm   ```  
 重新啟動php，php fpm 的地方具體看你是用哪個版本去呼叫
 
 修改nginx設定檔  
@@ -121,7 +128,9 @@ sudo vi default
 # composer 安裝
 
 參照官網  
-記得結束後執行```sudo mv composer.phar /usr/loacl/bin/composer```設成全域
+記得結束後執行  
+```sudo mv composer.phar /usr/loacl/bin/composer```  
+設成全域
 
 ## .composer/vendor/bin加到環境變數  
 這種方法只有當下那個termainal會加到全域變數
@@ -166,4 +175,11 @@ source ~/.bashrc
     xdebug.var_display_max_children = -1
     xdebug.var_display_max_data = -1
     xdebug.idekey = "PHPSTORM" # 如果你是用php storm再複製
+
+## VsCode字體
+```"editor.fontFamily": "'Noto Mono', 'Courier New', monospace",```
+
+## Elementary Os Theme
+
+[連結集合](https://www.one-tab.com/page/7UeZ7hnbSWKsLxUXplf3-Q)
 
