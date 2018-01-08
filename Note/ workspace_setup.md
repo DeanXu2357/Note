@@ -183,3 +183,15 @@ source ~/.bashrc
 
 [連結集合](https://www.one-tab.com/page/7UeZ7hnbSWKsLxUXplf3-Q)
 
+## VsCode套件
+
+[來源參考](https://medium.com/@shengyou/2018ironman-eos-for-php-developer-day21-cc0e4b35dc08)
+
+## VsCode 安裝 plant uml
+
+```
+sudo apt-get update
+sudo apt-get install default-jre
+sudo apt-get install default-jdk
+sudo apt-get install graphviz
+```
