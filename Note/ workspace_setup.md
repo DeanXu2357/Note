@@ -15,7 +15,31 @@
     * mysql
     * php
 * composer
+* unity-tweak-tool
+* gnome-tweak-tool
+* update nvidia driver
+* arc-theme
+* ibus chewing
 ---
+## ibus chewing
+```
+sudo apt-get install ibus-chewing
+ibus restart
+```
+## update nvidia driver
+```
+sudo add-apt-repository ppa:graphics-drivers/ppa
+sudo apt-get update 
+```
+## unity-tweak-tool
+```
+sudo apt-get install unity-tweak-tool
+```
+
+## gnome-tweak-tool
+```
+sudo apt-get install gnome-tweak-tool
+```
 ## Git
 
 ```
